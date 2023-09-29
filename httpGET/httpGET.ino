@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h> 
 
 #define USER_SERIAL Serial
 
@@ -30,16 +31,37 @@ void setup() {
 
   searchWiFi();
   connectWiFi();
-  
-  webSocket.begin("203.159.93.42", 3000);
-  webSocket.on("message", controlled);
+  requestPostApi();
+  // webSocket.begin("203.159.93.42", 3000);
+  // webSocket.on("message", controlled);
 }
 
 void loop() {
-  webSocket.loop();
+  // webSocket.loop();
 
 }
-
+void requestPostApi(){
+    WiFiClient client; 
+    const int httpPort = 80; 
+    if (!client.connect(host, httpPort)) 
+    { 
+    Serial.println("connection failed"); 
+    return; 
+    } 
+    Serial.print("Requesting URL: "); 
+    Serial.println(url); //Post Data 
+    String postData = "adcreading=" + String(adcvalue); 
+    String address = host + url; 
+    HTTPClient http; 
+    http.begin(address); 
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded"); 
+    auto httpCode = http.POST(postData); 
+    Serial.println(httpCode); //Print HTTP return code 
+    String payload = http.getString(); 
+    Serial.println(payload); //Print request response payload 
+    http.end(); //Close connection Serial.println(); 
+    Serial.println("closing connection");
+}
 void controlled(const char* message, size_t length){
 //  USER_SERIAL.println(message);
 
